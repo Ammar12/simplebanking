@@ -1,0 +1,255 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Banking</title>
+    {% include 'includes/head.html' %}
+
+  </head>
+
+  <body>
+  <!-- Simple header with fixed tabs. -->
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-tabs">
+    <header class="mdl-layout__header">
+      <div class="mdl-layout__header-row">
+        <!-- Title -->
+        <span class="mdl-layout-title"><a href="http link">Simple Banking</a></span>
+        <div style="position: relative; left: calc(100% - 300px);">
+          <!-- Right aligned menu below button -->
+          <span style="font-size: 20px; vertical-align: middle;">My Account</span> <button id="demo-menu-lower-right" class="mdl-button mdl-js-button mdl-button--icon">
+            <i class="material-icons">more_vert</i>
+          </button>
+          <ul id="account_menu" class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="demo-menu-lower-right">
+            <a href="/"><li class="mdl-menu__item">Account Management</li></a>
+            {% for customer in customers %}
+            {% if customer['nickname'] == current_customer['nickname'] %}
+              <a href="/account/{{ customer['_id'] }}"><li class="mdl-menu__item"><strong>{{ customer['nickname'] }}</strong></li></a>
+            {% else %}
+              <a href="/account/{{ customer['_id'] }}"><li class="mdl-menu__item">{{ customer['nickname'] }}</li></a>
+            {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <!-- Tabs -->
+      <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+        <a href="#fixed-tab-1" class="mdl-layout__tab is-active bold" >Edit Manager Profile</a>
+        <a href="#fixed-tab-2" class="mdl-layout__tab bold">Rewards</a>
+        <a href="#fixed-tab-3" class="mdl-layout__tab bold">Purchases</a>
+        <a href="#fixed-tab-4" class="mdl-layout__tab bold">Branches</a>
+      </div>
+    </header>
+    <div class="mdl-layout__drawer">
+      <span class="mdl-layout-title">Simple Banking</span>
+    </div>
+
+    <main class="mdl-layout__content">
+
+      <section class="mdl-layout__tab-panel is-active" id="fixed-tab-1">
+        <div class="page-content">
+          <div class="card-wide mdl-card mdl-shadow--2dp account_update">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">Update Manager Profile ({{ manager['first_name'] }} {{ manager['last_name'] }})</h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <p>{{ message }}</p>
+              <form id="account_update" action="/account/{{ current_customer['customer_id'] }}" method="POST">
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                  <input class="mdl-textfield__input" type="text" id="fname" name="fname" value="{{ manager['first_name'] }}" disabled />
+                  <label class="mdl-textfield__label" for="fname">First Name</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                  <input class="mdl-textfield__input" type="text" id="lname" name="lname" value="{{ manager['last_name'] }}" disabled />
+                  <label class="mdl-textfield__label" for="lname">Last Name</label>
+                </div>
+                <br />
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                  <input class="mdl-textfield__input" type="text" id="street_number" name="street_number" value="{{ manager['address']['street_number'] }}" />
+                  <label class="mdl-textfield__label" for="street_number">Street Number</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                  <input class="mdl-textfield__input" type="text" id="street_name" name="street_name" value="{{ manager['address']['street_name'] }}" />
+                  <label class="mdl-textfield__label" for="street_name">Street Name</label>
+                </div>
+                <br />
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                  <input class="mdl-textfield__input" type="text" id="city" name="city" value="{{ manager['address']['city'] }}" />
+                  <label class="mdl-textfield__label" for="city">City</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                  <input class="mdl-textfield__input" type="text" id="state" name="state" value="{{ manager['address']['state'] }}" />
+                  <label class="mdl-textfield__label" for="state">State</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                  <input class="mdl-textfield__input" type="text" id="zip" name="zip" value="{{ manager['address']['zip'] }}" />
+                  <label class="mdl-textfield__label" for="zip">Zip Code</label>
+                </div>
+            </div>
+            <div class="mdl-card__actions mdl-card--border">
+              <a onclick="document.getElementById('account_update').submit();" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                Update
+              </a>
+            </div>
+            </form>
+          </div>
+        </div>
+      </section>
+      <section class="mdl-layout__tab-panel" id="fixed-tab-2">
+        <div class="page-content">
+          <div class="card-wide mdl-card mdl-shadow--2dp rewards">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">Rewards</h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <span class="rewards">Balance: {{ "${:,.2f}".format(current_customer['balance']) }}<br />Cashback: {{ "${:,.2f}".format(current_customer['rewards']) }}<br />Miles Earned: {{ "{:,.0f}".format(sumPurchases * 2) }}</span><br /><br />
+              {% if sumPurchases * 2 > 0 %}<div style="font-style: italic; font-size: 12px;"><a href="#" onclick="showCards()" style="text-decoration: none;">You have {{ "{:,.0f}".format(sumPurchases * 2) }} miles available thanks to your Venture card. Click here to explore what you could do with your miles!</a></div>{% endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="mdl-grid">
+        {% for k, v in hotels["hotels"].items() %}
+        {% if loop.index < 5 %}
+        <div class="card-event mdl-card mdl-cell mdl-cell--4-col mdl-shadow--2dp hotelCard" style="display: none;">
+          <div class="mdl-card__title mdl-card--expand">
+            <h4>
+              {% if v['thumbnailURL'] != None and v['thumbnailURL'] != "" %}
+                <img src="{{ v['thumbnailURL'] }}" style="border-radius: 50px; text-align: center;" /><br />
+              {% endif %}
+              {{ v['hotelName'] }}<br>
+            </h4>
+          </div>
+          <div class="mdl-card__actions mdl-card--border">
+            <a href="http://www.priceline.com/hotel/hotelMapGuide.do?propID={{ v['pclnHotelID'] }}" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+              Book Hotel
+            </a>
+            <div class="mdl-layout-spacer"></div>
+            <a href="#" onclick="$(this.parentNode.parentNode).fadeOut('slow');this.parentNode.parentNode.remove();"><i class="material-icons">close</i></a>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+      <section class="mdl-layout__tab-panel" id="fixed-tab-3">
+        <div class="page-content">
+          <div class="card-wide mdl-card mdl-shadow--2dp purchases">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">Purchases</h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <table id="purchaseTable" class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th class="mdl-data-table__cell--non-numeric">Purchase Date</th>
+                    <th>Item Purchased</th>
+                    <th>Merchant</th>
+                    <th>Quantity</th>
+                    <th>Unit price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for purchase in purchases %}
+                  <tr>
+                    <td style="padding-top:11px;">{% if purchase['status'] == "executed" %}<i class="material-icons">check_box</i>{% else %}<i class="material-icons">check_box_outline_blank</i>{% endif %}</td>
+                    <td class="mdl-data-table__cell--non-numeric">{{ purchase['purchase_date'] }}</td>
+                    <td>{{ purchase['description'] }}</td>
+                    <td>{{ purchase['add_info']['name'] }}</td>
+                    <td>1</td>
+                    <td>{{ "${:,.2f}".format(purchase['amount']) }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="mdl-layout__tab-panel body" id="fixed-tab-4">
+        <div class="page-content">
+          <div class="card-wide mdl-card mdl-shadow--2dp purchases">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">Branches</h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <p> Find nearby Capital One Branches</p>
+              <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+              <iframe
+  width="1000"
+  height="1000"
+  frameborder="0" style="border:none" scrolling= "no"
+  src="../maps.html" allowfullscreen>
+</iframe>
+            </div>
+
+          </div>
+          <script>
+          var map;
+      var infowindow;
+
+      function initMap() {
+        var pyrmont = {lat: -33.867, lng: 151.195};
+
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: pyrmont,
+          zoom: 15
+        });
+
+        infowindow = new google.maps.InfoWindow();
+        var service = new google.maps.places.PlacesService(map);
+        service.nearbySearch({
+          location: pyrmont,
+          radius: 500,
+          type: ['store']
+        }, callback);
+      }
+
+      function callback(results, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          for (var i = 0; i < results.length; i++) {
+            createMarker(results[i]);
+          }
+        }
+      }
+
+      function createMarker(place) {
+        var placeLoc = place.geometry.location;
+        var marker = new google.maps.Marker({
+          map: map,
+          position: place.geometry.location
+        });
+
+        google.maps.event.addListener(marker, 'click', function() {
+          infowindow.setContent(place.name);
+          infowindow.open(map, this);
+        });
+      }
+      </script>
+          <div id="map"></div>
+        </div>
+      </section>
+      <div class="mdl-layout-spacer"></div>
+      {% include 'includes/footer.html' %}
+    </main>
+  </div>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuyvIKTFvesQ_AcRlYwK0pGFzxgm0ISKs&signed_in=true&libraries=places&callback=initMap" async defer></script>
+  <script>
+    function showCards() {
+      $('.hotelCard').fadeIn('slow').css({top: 100, opacity: 0}).animate({top: -10, opacity: 1}, 'slow');
+    }
+
+    function hideCards() {
+      $('.hotelCard').fadeOut('fast').css({top: -10, opacity: 1}).animate({top: 100, opacity: 0}, 'slow');
+    }
+
+    $(".mdl-layout__tab.bold").click(function() {
+      hideCards();
+    });
+
+
+
+  </script>
+
+  </body>
+</html>
